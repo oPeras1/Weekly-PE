@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly PE Questions</title>
+    <!-- Add MathJax script for LaTeX support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+                inlineMath: [['$','$'], ['\\(','\\)']],
+                processEscapes: true
+            }
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1, h2, h3 {
+            color: #ffffff;
+        }
+        .week-container {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .question-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #2a2a2a;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result-display {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #2e3b2f;
+            border-radius: 5px;
+            display: none;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #8bc34a;
+        }
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        .collapsible-header:after {
+            content: "▼";
+            font-size: 12px;
+            margin-left: 10px;
+            transition: transform 0.3s;
+        }
+        .collapsible-header.collapsed:after {
+            content: "▶";
+        }
+        .collapsible-content {
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+            max-height: 2000px;
+        }
+        .collapsed + .collapsible-content {
+            max-height: 0;
+        }
+        .calculate-btn {
+            background-color: #4CAF50;
+        }
+        .minimize-btn {
+            background-color: #2e2e2e;
+            margin-left: 10px;
+        }
+        .formula-display {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weekly PE Questions</h1>
+    
+    <div id="weeks-container"></div>
+
+    <script>
+        const weeks = [
+            {
+                name: "Week 1",
+                questions: [
+                    {
+                        title: "1.",
+                        fields: {
+                            IeP: "P(I \\cap P)",
+                            IenP: "P(I \\cap \\bar{P})"
+                        },
+                        calculate: (fields) => {
+                            const IeP = parseFloat(fields.IeP);
+                            const IenP = parseFloat(fields.IenP);
+                            return "$P(P|I) = " + (IeP / (IeP + IenP)) + "$";
+                        },
+                        formula: "P(P|I) = \\frac{P(I \\cap P)}{P(I \\cap P) + P(I \\cap \\bar{P})}"
+                    },
+                    {
+                        title: "2.",
+                        fields: {
+                            S: "P(S)",
+                            AsS: "P(A|S)",
+                            AsnS: "P(A|\\bar{S})"
+                        },
+                        calculate: (fields) => {
+                            const S = parseFloat(fields.S);
+                            const AsS = parseFloat(fields.AsS);
+                            const AsnS = parseFloat(fields.AsnS);
+                            return "$P(A) = " + (S*AsS+AsnS*(1-S)) + "$";
+                        },
+                        formula: "P(A) = P(S) \\cdot P(A|S) + P(A|\\bar{S}) \\cdot (1-P(S))"
+                    },
+                    {
+                        title: "3.",
+                        fields: {
+                            R: "P(R)",
+                            nAsR: "P(\\bar{A}|R)",
+                            nAsnR: "P(\\bar{A}|\\bar{R})"
+                        },
+                        calculate: (fields) => {
+                            const R = parseFloat(fields.R);
+                            const nAsR = parseFloat(fields.nAsR);
+                            const nAsnR = parseFloat(fields.nAsnR);
+                            return "$P(R|A) = " + ((R-nAsR*R)/((R-nAsR*R)+((1-R)-nAsnR*(1-R)))) + "$";
+                        },
+                        formula: "P(R|A) = \\frac{P(R) - P(\\bar{A}|R) \\cdot P(R)}{(P(R) - P(\\bar{A}|R) \\cdot P(R)) + ((1-P(R)) - P(\\bar{A}|\\bar{R}) \\cdot (1-P(R)))}"
+                    },
+                    {
+                        title: "4.",
+                        fields: {
+                            A: "P(A)",
+                            B: "P(B)"
+                        },
+                        calculate: (fields) => {
+                            const A = parseFloat(fields.A);
+                            const B = parseFloat(fields.B);
+                            const AeB = A*B;
+                            const AoB = A+B-AeB;
+                            return "$P(A|(A \\cup B)) = " + (A/AoB) + "$";
+                        },
+                        formula: "P(A|(A \\cup B)) = \\frac{P(A)}{P(A) + P(B) - P(A) \\cdot P(B)}"
+                    },
+                    {
+                        title: "5.",
+                        fields: {
+                            AsC: "P(A|C)",
+                            AeB: "P(A \\cap B)",
+                            BeC: "P(B \\cap C)"
+                        },
+                        calculate: (fields) => {
+                            const AsC = parseFloat(fields.AsC);
+                            const AeB = parseFloat(fields.AeB);
+                            const BeC = parseFloat(fields.BeC);
+
+                            const AeBeC = AsC*BeC
+                            
+                            return "$P(C|(A \\cap B)) = " + (AeBeC/AeB) + "$";
+                        },
+                        formula: "P(C|(A \\cap B)) = \\frac{P(A|C) \\cdot P(B \\cap C)}{P(A \\cap B)}"
+                    }
+                ]
+            },
+        ];
+
+        function toggleCollapse(element) {
+            element.classList.toggle('collapsed');
+        }
+
+        function generateForm() {
+            const weeksContainer = document.getElementById('weeks-container');
+            
+            weeks.forEach((week, weekIndex) => {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'week-container';
+                
+                const weekHeader = document.createElement('h2');
+                weekHeader.className = 'collapsible-header';
+                weekHeader.textContent = week.name;
+                weekHeader.onclick = function() {
+                    toggleCollapse(this);
+                };
+                
+                const weekContent = document.createElement('div');
+                weekContent.className = 'collapsible-content';
+                
+                week.questions.forEach((question, questionIndex) => {
+                    const questionId = `week${weekIndex}-question${questionIndex}`;
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question-container';
+                    
+                    const questionHeader = document.createElement('h3');
+                    questionHeader.className = 'collapsible-header';
+                    questionHeader.textContent = question.title;
+                    questionHeader.onclick = function() {
+                        toggleCollapse(this);
+                    };
+                    
+                    const questionContent = document.createElement('div');
+                    questionContent.className = 'collapsible-content';
+                                        
+                    const formElement = document.createElement('form');
+                    formElement.id = `form-${questionId}`;
+                    formElement.onsubmit = function(e) {
+                        e.preventDefault();
+                        calculateQuestionResult(weekIndex, questionIndex);
+                    };
+                    
+                    for (const [fieldName, fieldLatex] of Object.entries(question.fields)) {
+                        const inputId = `${questionId}-${fieldName}`;
+                        const inputGroup = document.createElement('div');
+                        inputGroup.className = 'input-group';
+                        
+                        inputGroup.innerHTML = `
+                            <label for="${inputId}"><span class="math">$${fieldLatex}$</span>:</label>
+                            <input type="number" id="${inputId}" name="${fieldName}" step="any" required>
+                        `;
+                        formElement.appendChild(inputGroup);
+                    }
+                    
+                    const calculateButton = document.createElement('button');
+                    calculateButton.type = 'submit';
+                    calculateButton.className = 'calculate-btn';
+                    calculateButton.innerText = 'Calculate';
+                    formElement.appendChild(calculateButton);
+                    
+                    const resultDisplay = document.createElement('div');
+                    resultDisplay.id = `result-${questionId}`;
+                    resultDisplay.className = 'result-display';
+                    resultDisplay.innerHTML = `
+                        <div>Result: <span class="result-value" id="result-value-${questionId}"></span></div>
+                    `;
+                    
+                    questionContent.appendChild(formElement);
+                    questionContent.appendChild(resultDisplay);
+                    
+                    questionDiv.appendChild(questionHeader);
+                    questionDiv.appendChild(questionContent);
+                    
+                    weekContent.appendChild(questionDiv);
+                });
+                
+                weekDiv.appendChild(weekHeader);
+                weekDiv.appendChild(weekContent);
+                
+                weeksContainer.appendChild(weekDiv);
+            });
+            
+            // Typeset the initial LaTeX
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+        }
+
+        function calculateQuestionResult(weekIndex, questionIndex) {
+            const question = weeks[weekIndex].questions[questionIndex];
+            const questionId = `week${weekIndex}-question${questionIndex}`;
+            const fields = {};
+            
+            let allFieldsFilled = true;
+            for (const fieldName in question.fields) {
+                const inputId = `${questionId}-${fieldName}`;
+                const input = document.getElementById(inputId);
+                if (input.value.trim() === '') {
+                    allFieldsFilled = false;
+                    input.focus();
+                    return;
+                }
+                fields[fieldName] = input.value;
+            }
+            
+            if (!allFieldsFilled) {
+                alert(`Please fill all fields for ${question.title}`);
+                return;
+            }
+            
+            const result = question.calculate(fields);
+            
+            const resultDisplay = document.getElementById(`result-${questionId}`);
+            const resultValue = document.getElementById(`result-value-${questionId}`);
+            resultValue.innerHTML = result;
+            resultDisplay.style.display = 'block';
+            
+            // Typeset the new LaTeX
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, resultValue]);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            generateForm();
+        });
+    </script>
+</body>
+</html>
