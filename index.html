@@ -47,8 +47,8 @@
         .week-container {
             background-color: #1e1e1e;
             border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 10px;
+            margin-bottom: 25px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         .question-container {
@@ -117,7 +117,7 @@
         .collapsible-content {
             transition: max-height 0.3s ease-out;
             overflow: hidden;
-            max-height: 2000px;
+            max-height: 2500px;
         }
         .collapsed + .collapsible-content {
             max-height: 0;
@@ -174,6 +174,44 @@
         <!-- Footer -->
 
         <script>
+            function combinacao(n, k) {
+                if (k > n) return 0;
+                if (k === 0 || k === n) return 1;
+                if (k > n - k) k = n - k;
+                let c = 1;
+                for (let i = 0; i < k; i++) {
+                    c *= (n - i);
+                    c /= (i + 1);
+                }
+                return c;
+            }
+
+            function poissonProbability(lambda, k) {
+                return (Math.exp(-lambda) * Math.pow(lambda, k)) / factorial(k);
+            }
+
+            function factorial(n) {
+                return n <= 1 ? 1 : n * factorial(n - 1);
+            }
+
+            function normCDF(z) {
+                return 0.5 * (1 + erf(z / Math.sqrt(2)));
+            }
+
+            function erf(x) {
+                const sign = (x >= 0) ? 1 : -1;
+                x = Math.abs(x);
+                const a1 =  0.254829592;
+                const a2 = -0.284496736;
+                const a3 =  1.421413741;
+                const a4 = -1.453152027;
+                const a5 =  1.061405429;
+                const p  =  0.3275911;
+                const t = 1.0 / (1.0 + p * x);
+                const y = 1.0 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x));
+                return sign * y;
+            }
+
             const weeks = [
                 {
                     name: "Week 1",
@@ -256,6 +294,120 @@
                         }
                     ]
                 },
+                {
+                    name: "Week 2",
+                    questions: [
+                        {
+                            title: "1.",
+                            fields: {
+                                G: "P(G)",
+                                PG: "k = Bin(|P|, P(G))",
+                                P: "|P|"
+                            },
+                            calculate: (fields) => {
+                                const P = parseFloat(fields.P);
+                                const G = parseFloat(fields.G);
+                                const PG = parseFloat(fields.PG);
+
+                                var total = 1;
+                                var n = 0;
+
+                                while (n < PG) {
+                                    total -= combinacao(P, n)*Math.pow(G, n)*Math.pow(1-G, P-n);
+                                    n++;
+                                }
+
+                                return "$P(X >= k) = " + (total) + "$";
+                            },
+                            formula: "P(P|I) = \\frac{P(I \\cap P)}{P(I \\cap P) + P(I \\cap \\bar{P})}"
+                        },
+                        {
+                            title: "2.",
+                            fields: {
+                                P: "P(P)",
+                                M: "P(M)",
+                                PsM: "P(P|M)",
+                                XmN: "P(X>N)"
+                            },
+                            calculate: (fields) => {
+                                const P = parseFloat(fields.P);
+                                const M = parseFloat(fields.M);
+                                const PsM = parseFloat(fields.PsM);
+                                const XmN = parseFloat(fields.XmN);
+                                const PeM = M*PsM;
+                                const nMeP = P-PeM;
+
+                                return "$P(\\bar{M} \\cap P) = " + (Math.pow(1-nMeP,XmN)) + "$";
+                            },
+                            formula: "P(A) = P(S) \\cdot P(A|S) + P(A|\\bar{S}) \\cdot (1-P(S))"
+                        },
+                        {
+                            title: "3.",
+                            fields: {
+                                P0: "P0",
+                                P3: "Pn",
+                            },
+                            calculate: (fields) => {
+                                const P0 = parseFloat(fields.P0);
+                                const k = parseFloat(fields.P3);
+
+                                const lambda = -Math.log(P0);
+
+                                const P3 = poissonProbability(lambda, k);
+
+                                const P3_given_at_least_1 = P3 / (1 - P0);
+                                return "$P(R|A) = " + (P3_given_at_least_1) + "$";
+
+                            },
+                            formula: "P(R|A) = \\frac{P(R) - P(\\bar{A}|R) \\cdot P(R)}{(P(R) - P(\\bar{A}|R) \\cdot P(R)) + ((1-P(R)) - P(\\bar{A}|\\bar{R}) \\cdot (1-P(R)))}"
+                        },
+                        {
+                            title: "4.",
+                            fields: {
+                                EX: "E(X)",
+                                sigma: "\\sigma",
+                                B: "E(B...)",
+                                A: "E(... + A \\sqrt{X})",
+                            },
+                            calculate: (fields) => {
+                                const E_X = parseFloat(fields.EX);
+                                const B = parseFloat(fields.B);
+                                const A = parseFloat(fields.A);
+                                const sigma = parseFloat(fields.sigma);
+
+                                const b_minus_a = sigma * Math.sqrt(12);
+                                const a = E_X - b_minus_a / 2;
+                                const b = E_X + b_minus_a / 2;
+                                const integral = (2 / 3) * (Math.pow(b, 1.5) - Math.pow(a, 1.5));
+                                const E_sqrtX = integral / (b - a);
+
+                                const custoEsperado = B + A * E_sqrtX;
+
+                                return "$P(A|(A \\cup B)) = " + (custoEsperado) + "$";
+                            },
+                            formula: "P(A|(A \\cup B)) = \\frac{P(A)}{P(A) + P(B) - P(A) \\cdot P(B)}"
+                        },
+                        {
+                            title: "5.",
+                            fields: {
+                                mu: "E(X)",
+                                sigma: "\\sigma",
+                                T: "H"
+                            },
+                            calculate: (fields) => {
+                                const mu = parseFloat(fields.mu);      
+                                const sigma = parseFloat(fields.sigma);
+                                const T = parseFloat(fields.T);      
+
+                                const z = (T - mu) / sigma;
+                                const probabilidade = normCDF(z);
+
+                                return "$P(X < T) = " + probabilidade + "$";
+                            },
+                            formula: "P(X < T) = \\Phi\\left(\\frac{T - \\mu}{\\sigma}\\right)"
+                        }
+                    ]
+                },
             ];
 
             function toggleCollapse(element) {
@@ -264,20 +416,20 @@
 
             function generateForm() {
                 const weeksContainer = document.getElementById('weeks-container');
-                
+                    
                 weeks.forEach((week, weekIndex) => {
                     const weekDiv = document.createElement('div');
                     weekDiv.className = 'week-container';
                     
                     const weekHeader = document.createElement('h2');
-                    weekHeader.className = 'collapsible-header';
+                    weekHeader.className = 'collapsible-header' + (weekIndex < weeks.length - 1 ? ' collapsed' : '');
                     weekHeader.textContent = week.name;
                     weekHeader.onclick = function() {
                         toggleCollapse(this);
                     };
                     
                     const weekContent = document.createElement('div');
-                    weekContent.className = 'collapsible-content';
+                    weekContent.className = 'collapsible-content' + (weekIndex < weeks.length - 1 ? ' collapsed' : '');
                     
                     week.questions.forEach((question, questionIndex) => {
                         const questionId = `week${weekIndex}-question${questionIndex}`;
