@@ -36,7 +36,7 @@
             background-color: #121212;
             color: #e0e0e0;
             position: relative;
-            min-height: 100vh;
+            min-height: 120vh;
             box-sizing: border-box;
         }
 
@@ -449,7 +449,33 @@
                                 P: "Y"
                             },
                             calculate: (fields) => {
-                                return "0";
+                                const X0Y0 = parseFloat(fields.X0Y0);
+                                const X0Y1 = parseFloat(fields.X0Y1);
+                                const X0Y2 = parseFloat(fields.X0Y2);
+                                const X1Y0 = parseFloat(fields.X1Y0);
+                                const X1Y1 = parseFloat(fields.X1Y1);
+                                const X1Y2 = parseFloat(fields.X1Y2);
+                                const X2Y0 = parseFloat(fields.X2Y0);
+                                const X2Y1 = parseFloat(fields.X2Y1);
+                                const X2Y2 = parseFloat(fields.X2Y2);
+
+                                const sumy0 = X0Y0 + X1Y0 + X2Y0;
+
+                                const sumy1 = X0Y1 + X1Y1 + X2Y1 + sumy0;
+
+                                const sumy2 = X0Y2 + X1Y2 + X2Y2 + sumy1;
+
+                                const Y = parseFloat(fields.P);
+
+                                if (Y < 1) {
+                                    return "$fX(x) = " + sumy0 + "$";
+                                } else if (Y < 2) {
+                                    return "$fX(x) = " + sumy1 + "$";
+                                } else {
+                                    return "$fX(x) = " + sumy2 + "$";
+                                }
+
+                            
                             },
                         },
                         {
