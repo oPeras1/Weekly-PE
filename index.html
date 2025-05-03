@@ -504,7 +504,14 @@
                                             if (isNaN(prob)) continue;
 
                                             denominator += prob;
-                                            numerator += (calcType === "Y^2" ? (y ** 2) : y) * prob;
+
+                                            if (calcType === "Y^3") {
+                                                numerator += (y ** 3) * prob;
+                                            } else if (calcType === "Y") {
+                                                numerator += y * prob;
+                                            } else if (calcType === "Y^2") {
+                                                numerator += (y ** 2) * prob;
+                                            }
                                         }
                                     }
                                 }
@@ -727,6 +734,7 @@
                                 <select id="${questionId}-calcType" name="calcType" class="math-input" required>
                                     <option value="Y">E(Y|X<=N)</option>
                                     <option value="Y^2">E(Y²|X<=N)</option>
+                                    <option value="Y^3">E(Y³|X<=N)</option>
                                 </select>
                             `;
                             formElement.appendChild(inputGroupCalcType);
