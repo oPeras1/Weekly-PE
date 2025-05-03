@@ -158,6 +158,29 @@
             font-size: 20px;
             color: #e0e0e0;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background-color: #2a2a2a;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+        }
+        .math-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -408,6 +431,190 @@
                         }
                     ]
                 },
+                {
+                    name: "Week 3",
+                    questions: [
+                        {
+                            title: "1.",
+                            fields: {
+                                X0Y0: "P(X=0,Y=0)",
+                                X0Y1: "P(X=0,Y=1)",
+                                X0Y2: "P(X=0,Y=2)",
+                                X1Y0: "P(X=1,Y=0)",
+                                X1Y1: "P(X=1,Y=1)",
+                                X1Y2: "P(X=1,Y=2)",
+                                X2Y0: "P(X=2,Y=0)",
+                                X2Y1: "P(X=2,Y=1)",
+                                X2Y2: "P(X=2,Y=2)",
+                                P: "Y"
+                            },
+                            calculate: (fields) => {
+                                return "0";
+                            },
+                        },
+                        {
+                            title: "2.",
+                            fields: {
+                                Xm2Y0: "P(X=-2,Y=0)",
+                                Xm2Y3: "P(X-2,Y=3)",
+                                X0Y0: "P(X=0,Y=0)",
+                                X0Y3: "P(X=0,Y=3)",
+                                X2Y0: "P(X=2,Y=0)",
+                                X2Y3: "P(X=2,Y=3)",
+                                X4Y0: "P(X=4,Y=0)",
+                                X4Y3: "P(X=4,Y=3)",
+                                E: "E(Y|X<=N)"
+                            },
+                            calculate: (fields) => {
+                                const matrix = {};
+
+                                const values = [
+                                    { x: -2, y: 0, val: parseFloat(fields.Xm2Y0) },
+                                    { x: -2, y: 3, val: parseFloat(fields.Xm2Y3) },
+                                    { x: 0,  y: 0, val: parseFloat(fields.X0Y0) },
+                                    { x: 0,  y: 3, val: parseFloat(fields.X0Y3) },
+                                    { x: 2,  y: 0, val: parseFloat(fields.X2Y0) },
+                                    { x: 2,  y: 3, val: parseFloat(fields.X2Y3) },
+                                    { x: 4,  y: 0, val: parseFloat(fields.X4Y0) },
+                                    { x: 4,  y: 3, val: parseFloat(fields.X4Y3) },
+                                ];
+
+                                for (const { x, y, val } of values) {
+                                    if (!matrix[x]) matrix[x] = {};
+                                    matrix[x][y] = val;
+                                }
+
+                                const N = parseFloat(fields.E);
+
+                                let num = 0;
+                                let denom = 0;
+
+                                for (const xStr in matrix) {
+                                    const x = parseFloat(xStr);
+                                    if (x <= N) {
+                                        for (const yStr in matrix[x]) {
+                                            const y = parseFloat(yStr);
+                                            const prob = matrix[x][y];
+                                            num += y * prob;
+                                            denom += prob;
+                                        }
+                                    }
+                                }
+
+                                const result = denom === 0 ? 0 : num / denom;
+
+                                return "$E(Y|X<="+N+") = " + result + "$";
+                            },
+                        },
+                        {
+                            title: "3.",
+                            fields: {
+                                X56Y52: "P(X=56,Y=52)",
+                                X56Y54: "P(X=56,Y=54)",
+                                X56Y55: "P(X=56,Y=55)",
+                                X58Y52: "P(X=58,Y=52)",
+                                X58Y54: "P(X=58,Y=54)",
+                                X58Y55: "P(X=58,Y=55)",
+                                X60Y52: "P(X=60,Y=52)",
+                                X60Y54: "P(X=60,Y=54)",
+                                X60Y55: "P(X=60,Y=55)",
+                                P: "Y",
+                            },
+                            calculate: (fields) => {
+                                console.log("Fields:", fields);
+                                
+                                const Y = parseFloat(fields.P); 
+
+                                const matrix = {};
+                                const values = [
+                                    { x: 56, y: 52, val: parseFloat(fields.X56Y52) },
+                                    { x: 56, y: 54, val: parseFloat(fields.X56Y54) },
+                                    { x: 56, y: 55, val: parseFloat(fields.X56Y55) },
+                                    { x: 58, y: 52, val: parseFloat(fields.X58Y52) },
+                                    { x: 58, y: 54, val: parseFloat(fields.X58Y54) },
+                                    { x: 58, y: 55, val: parseFloat(fields.X58Y55) },
+                                    { x: 60, y: 52, val: parseFloat(fields.X60Y52) },
+                                    { x: 60, y: 54, val: parseFloat(fields.X60Y54) },
+                                    { x: 60, y: 55, val: parseFloat(fields.X60Y55) },
+                                ];
+                                
+                                for (const { x, y, val } of values) {
+                                    if (!matrix[x]) matrix[x] = {};
+                                    matrix[x][y] = val;
+                                }
+                                
+                                let pY = 0;
+                                for (const x of [56, 58, 60]) {
+                                    const pXY = matrix[x]?.[Y];
+                                    if (pXY) pY += pXY;
+                                }
+                                
+                                let expected = 0;
+                                for (const x of [56, 58, 60]) {
+                                    const pXY = matrix[x]?.[Y] || 0;
+                                    const pCond = pY > 0 ? pXY / pY : 0;
+                                    expected += (x + Y) * pCond;
+                                }
+                                
+                                return "E[X+Y | Y=" + Y + "] = " + expected.toFixed(4);
+                            },
+                        },
+                        {
+                            title: "4.",
+                            fields: {
+                                P: "p",
+                                D: "Deformação",
+                                Turno1: "Turno 1",
+                                Turno2: "Turno 2",
+                                Turno3: "Turno 3",
+                            },
+                            calculate: (fields) => {
+                                const P = parseFloat(fields.P);
+                                const D = parseFloat(fields.D);
+
+                                const Turno1 = parseFloat(fields.Turno1);
+                                const Turno2 = parseFloat(fields.Turno2);
+                                const Turno3 = parseFloat(fields.Turno3);
+
+                                const total = Turno1 + Turno2 + Turno3;
+
+                                return "$P(X=2) = " + combinacao(total,D)*Math.pow(P, D)*Math.pow(1-P, total-D) + "$";
+                            },
+                        },
+                        {
+                            title: "5.",
+                            fields: {
+                                A: "a",
+                                T: "Total Reparação",
+                                LInf: "LimInferior",
+                                LSup: "LimSuperior",
+                            },
+                            calculate: (fields) => {
+                                const a = parseFloat(fields.A);
+                                const T = parseFloat(fields.T);
+                                const LInf = parseFloat(fields.LInf);
+                                const LSup = parseFloat(fields.LSup);
+                                
+                                const EX = 2/a;
+                                const EX2 = 24/(a**2);
+                                
+                                const VarX = EX2 - (EX**2);
+                                
+                                const mean = T * EX;
+                                const stdDev = Math.sqrt(T * VarX);
+                                
+                                const zInf = (LInf - mean) / stdDev;
+                                const zSup = (LSup - mean) / stdDev;
+                                
+                                const pSup = normCDF(zSup);
+                                const pInf = normCDF(zInf);
+                                const probability = pSup - pInf;
+                                
+                                return `P(${LInf} < S_${T} ≤ ${LSup}) = ${probability}`;
+                            },
+                        }
+                    ]
+                },
             ];
 
             function toggleCollapse(element) {
@@ -453,16 +660,148 @@
                             calculateQuestionResult(weekIndex, questionIndex);
                         };
                         
-                        for (const [fieldName, fieldLatex] of Object.entries(question.fields)) {
-                            const inputId = `${questionId}-${fieldName}`;
+                        // Caso especial para o exercício 2 da semana 3
+                        if (weekIndex === 2 && questionIndex === 1) { // Week 3, Question 2
+                            const tableElement = document.createElement('table');
+                            tableElement.innerHTML = `
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Y=0</th>
+                                        <th>Y=3/4</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>X=-2</td>
+                                        <td><input type="text" id="${questionId}-Xm2Y0" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-Xm2Y3" class="math-input" required></td>
+                                    </tr>
+                                    <tr>
+                                        <td>X=0</td>
+                                        <td><input type="text" id="${questionId}-X0Y0" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X0Y3" class="math-input" required></td>
+                                    </tr>
+                                    <tr>
+                                        <td>X=2</td>
+                                        <td><input type="text" id="${questionId}-X2Y0" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X2Y3" class="math-input" required></td>
+                                    </tr>
+                                    <tr>
+                                        <td>X=4</td>
+                                        <td><input type="text" id="${questionId}-X4Y0" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X4Y3" class="math-input" required></td>
+                                    </tr>
+                                </tbody>
+                            `;
+                            formElement.appendChild(tableElement);
+                            
                             const inputGroup = document.createElement('div');
                             inputGroup.className = 'input-group';
-                            
                             inputGroup.innerHTML = `
-                                <label for="${inputId}"><span class="math">$${fieldLatex}$</span>:</label>
-                                <input type="number" id="${inputId}" name="${fieldName}" step="any" required>
+                                <label for="${questionId}-E"><span class="math">$E(Y|X<=N)$</span>:</label>
+                                <input type="text" id="${questionId}-E" name="E" class="math-input" required>
                             `;
                             formElement.appendChild(inputGroup);
+                        } 
+                        // Caso especial para o exercício 1 da semana 3
+                        else if (weekIndex === 2 && questionIndex === 0) {
+                            const tableElement = document.createElement('table');
+                            tableElement.innerHTML = `
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Y=0</th>
+                                        <th>Y=1</th>
+                                        <th>Y=2</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>X=0</td>
+                                        <td><input type="text" id="${questionId}-X0Y0" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X0Y1" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X0Y2" class="math-input" required></td>
+                                    </tr>
+                                    <tr>
+                                        <td>X=1</td>
+                                        <td><input type="text" id="${questionId}-X1Y0" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X1Y1" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X1Y2" class="math-input" required></td>
+                                    </tr>
+                                    <tr>
+                                        <td>X=2</td>
+                                        <td><input type="text" id="${questionId}-X2Y0" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X2Y1" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X2Y2" class="math-input" required></td>
+                                    </tr>
+                                </tbody>
+                            `;
+                            formElement.appendChild(tableElement);
+                            
+                            const inputGroup = document.createElement('div');
+                            inputGroup.className = 'input-group';
+                            inputGroup.innerHTML = `
+                                <label for="${questionId}-P"><span class="math">$Y$</span>:</label>
+                                <input type="text" id="${questionId}-P" name="P" class="math-input" required>
+                            `;
+                            formElement.appendChild(inputGroup);
+                        }
+                        else if (weekIndex === 2 && questionIndex === 2) { // Semana 3, Questão 3
+                            const tableElement = document.createElement('table');
+                            tableElement.innerHTML = `
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Y=52</th>
+                                        <th>Y=54</th>
+                                        <th>Y=55</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>X=56</td>
+                                        <td><input type="text" id="${questionId}-X56Y52" name="X56Y52" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X56Y54" name="X56Y54" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X56Y55" name="X56Y55" class="math-input" required></td>
+                                    </tr>
+                                    <tr>
+                                        <td>X=58</td>
+                                        <td><input type="text" id="${questionId}-X58Y52" name="X58Y52" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X58Y54" name="X58Y54" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X58Y55" name="X58Y55" class="math-input" required></td>
+                                    </tr>
+                                    <tr>
+                                        <td>X=60</td>
+                                        <td><input type="text" id="${questionId}-X60Y52" name="X60Y52" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X60Y54" name="X60Y54" class="math-input" required></td>
+                                        <td><input type="text" id="${questionId}-X60Y55" name="X60Y55" class="math-input" required></td>
+                                    </tr>
+                                </tbody>
+                            `;
+                            formElement.appendChild(tableElement);
+                            
+                            const inputGroup = document.createElement('div');
+                            inputGroup.className = 'input-group';
+                            inputGroup.innerHTML = `
+                                <label for="${questionId}-P"><span class="math">$Y$</span>:</label>
+                                <input type="text" id="${questionId}-P" name="P" class="math-input" required>
+                            `;
+                            formElement.appendChild(inputGroup);
+                        }
+                        // Caso padrão para outros exercícios
+                        else {
+                            for (const [fieldName, fieldLatex] of Object.entries(question.fields)) {
+                                const inputId = `${questionId}-${fieldName}`;
+                                const inputGroup = document.createElement('div');
+                                inputGroup.className = 'input-group';
+                                
+                                inputGroup.innerHTML = `
+                                    <label for="${inputId}"><span class="math">$${fieldLatex}$</span>:</label>
+                                    <input type="text" id="${inputId}" name="${fieldName}" class="math-input" required>
+                                `;
+                                formElement.appendChild(inputGroup);
+                            }
                         }
                         
                         const calculateButton = document.createElement('button');
@@ -505,12 +844,19 @@
                 for (const fieldName in question.fields) {
                     const inputId = `${questionId}-${fieldName}`;
                     const input = document.getElementById(inputId);
-                    if (input.value.trim() === '') {
+                    if (!input || input.value.trim() === '') {
                         allFieldsFilled = false;
+                        if (input) input.focus();
+                        return;
+                    }
+                    // Avaliar expressão matemática simples
+                    try {
+                        fields[fieldName] = eval(input.value.replace(/[^0-9+\-*/().]/g, ''));
+                    } catch (e) {
+                        alert(`Invalid math expression in ${question.fields[fieldName]}`);
                         input.focus();
                         return;
                     }
-                    fields[fieldName] = input.value;
                 }
                 
                 if (!allFieldsFilled) {
