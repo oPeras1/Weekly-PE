@@ -455,67 +455,63 @@
                         {
                             title: "2.",
                             fields: {
+                                MaxValueY: "Máximo Y",
                                 Xm2Y0: "P(X=-2,Y=0)",
-                                Xm2Y3: "P(X-2,Y=3)",
+                                Xm2Y3: "P(X-2,Y=MaxValueY)",
                                 X0Y0: "P(X=0,Y=0)",
-                                X0Y3: "P(X=0,Y=3)",
+                                X0Y3: "P(X=0,Y=MaxValueY)",
                                 X2Y0: "P(X=2,Y=0)",
-                                X2Y3: "P(X=2,Y=3)",
+                                X2Y3: "P(X=2,Y=MaxValueY)",
                                 X4Y0: "P(X=4,Y=0)",
-                                X4Y3: "P(X=4,Y=3)",
+                                X4Y3: "P(X=4,Y=MaxValueY)",
                                 N: "N",
                                 calcType: "Cálculo"
                             },
                             calculate: (fields) => {
                                 const matrix = {};
+                                const maxY = parseInt(fields.MaxValueY);
+                                const xs = [-2, 0, 2, 4];
+
                                 const values = [
                                     { x: -2, y: 0, val: parseFloat(fields.Xm2Y0) },
-                                    { x: -2, y: 3, val: parseFloat(fields.Xm2Y3) },
+                                    { x: -2, y: maxY, val: parseFloat(fields.Xm2Y3) },
                                     { x: 0, y: 0, val: parseFloat(fields.X0Y0) },
-                                    { x: 0, y: 3, val: parseFloat(fields.X0Y3) },
+                                    { x: 0, y: maxY, val: parseFloat(fields.X0Y3) },
                                     { x: 2, y: 0, val: parseFloat(fields.X2Y0) },
-                                    { x: 2, y: 3, val: parseFloat(fields.X2Y3) },
+                                    { x: 2, y: maxY, val: parseFloat(fields.X2Y3) },
                                     { x: 4, y: 0, val: parseFloat(fields.X4Y0) },
-                                    { x: 4, y: 3, val: parseFloat(fields.X4Y3) },
+                                    { x: 4, y: maxY, val: parseFloat(fields.X4Y3) },
                                 ];
-                                
+
                                 for (const { x, y, val } of values) {
                                     if (!matrix[x]) matrix[x] = {};
                                     matrix[x][y] = val;
                                 }
-                                
+
                                 const N = parseFloat(fields.N);
                                 const calcType = fields.calcType;
-                                
-                                let num = 0;
-                                let denom = 0;
-                                
+
+                                let numerator = 0;
+                                let denominator = 0;
+
                                 for (const xStr in matrix) {
                                     const x = parseFloat(xStr);
                                     if (x <= N) {
                                         for (const yStr in matrix[x]) {
                                             const y = parseFloat(yStr);
                                             const prob = matrix[x][y];
-                                            
-                                            // Verifica se estamos calculando Y ou Y²
-                                            if (calcType === "Y^2") {
-                                                num += (y * y) * prob; // Para E(Y²|X<=N)
-                                            } else {
-                                                num += y * prob; // Para E(Y|X<=N)
-                                            }
-                                            
-                                            denom += prob;
+
+                                            if (isNaN(prob)) continue;
+
+                                            denominator += prob;
+                                            numerator += (calcType === "Y^2" ? (y ** 2) : y) * prob;
                                         }
                                     }
                                 }
-                                
-                                const result = denom === 0 ? 0 : num / denom;
-                                
-                                if (calcType === "Y^2") {
-                                    return "$E(Y^2|X<=" + N + ") = " + result + "$";
-                                } else {
-                                    return "$E(Y|X<=" + N + ") = " + result + "$";
-                                }
+
+                                const result = denominator === 0 ? 0 : numerator / denominator;
+                                const expr = calcType === "Y^2" ? "E(Y^2|X≤" : "E(Y|X≤";
+                                return `$${expr}${N}) = ${result.toFixed(4)}$`;
                             },
                         },
                         {
@@ -532,9 +528,7 @@
                                 X60Y55: "P(X=60,Y=55)",
                                 P: "Y",
                             },
-                            calculate: (fields) => {
-                                console.log("Fields:", fields);
-                                
+                            calculate: (fields) => {                                
                                 const Y = parseFloat(fields.P); 
 
                                 const matrix = {};
@@ -674,13 +668,21 @@
                         
                         // Caso especial para o exercício 2 da semana 3
                         if (weekIndex === 2 && questionIndex === 1) { // Week 3, Question 2
+                            const inputMaxY = document.createElement('div');
+                            inputMaxY.className = 'input-group';
+                            inputMaxY.innerHTML = `
+                                <label for="${questionId}-MaxValueY"><span class="math">Max Y</span>:</label>
+                                <input type="text" id="${questionId}-MaxValueY" name="MaxValueY" class="math-input" required>
+                            `;
+                            formElement.appendChild(inputMaxY);
+
                             const tableElement = document.createElement('table');
                             tableElement.innerHTML = `
                                 <thead>
                                     <tr>
                                         <th></th>
                                         <th>Y=0</th>
-                                        <th>Y=3</th>
+                                        <th>Y=MaxValueY</th>
                                     </tr>
                                 </thead>
                                 <tbody>
