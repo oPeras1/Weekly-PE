@@ -463,47 +463,59 @@
                                 X2Y3: "P(X=2,Y=3)",
                                 X4Y0: "P(X=4,Y=0)",
                                 X4Y3: "P(X=4,Y=3)",
-                                E: "E(Y|X<=N)"
+                                N: "N",
+                                calcType: "Cálculo"
                             },
                             calculate: (fields) => {
                                 const matrix = {};
-
                                 const values = [
                                     { x: -2, y: 0, val: parseFloat(fields.Xm2Y0) },
                                     { x: -2, y: 3, val: parseFloat(fields.Xm2Y3) },
-                                    { x: 0,  y: 0, val: parseFloat(fields.X0Y0) },
-                                    { x: 0,  y: 3, val: parseFloat(fields.X0Y3) },
-                                    { x: 2,  y: 0, val: parseFloat(fields.X2Y0) },
-                                    { x: 2,  y: 3, val: parseFloat(fields.X2Y3) },
-                                    { x: 4,  y: 0, val: parseFloat(fields.X4Y0) },
-                                    { x: 4,  y: 3, val: parseFloat(fields.X4Y3) },
+                                    { x: 0, y: 0, val: parseFloat(fields.X0Y0) },
+                                    { x: 0, y: 3, val: parseFloat(fields.X0Y3) },
+                                    { x: 2, y: 0, val: parseFloat(fields.X2Y0) },
+                                    { x: 2, y: 3, val: parseFloat(fields.X2Y3) },
+                                    { x: 4, y: 0, val: parseFloat(fields.X4Y0) },
+                                    { x: 4, y: 3, val: parseFloat(fields.X4Y3) },
                                 ];
-
+                                
                                 for (const { x, y, val } of values) {
                                     if (!matrix[x]) matrix[x] = {};
                                     matrix[x][y] = val;
                                 }
-
-                                const N = parseFloat(fields.E);
-
+                                
+                                const N = parseFloat(fields.N);
+                                const calcType = fields.calcType;
+                                
                                 let num = 0;
                                 let denom = 0;
-
+                                
                                 for (const xStr in matrix) {
                                     const x = parseFloat(xStr);
                                     if (x <= N) {
                                         for (const yStr in matrix[x]) {
                                             const y = parseFloat(yStr);
                                             const prob = matrix[x][y];
-                                            num += y * prob;
+                                            
+                                            // Verifica se estamos calculando Y ou Y²
+                                            if (calcType === "Y^2") {
+                                                num += (y * y) * prob; // Para E(Y²|X<=N)
+                                            } else {
+                                                num += y * prob; // Para E(Y|X<=N)
+                                            }
+                                            
                                             denom += prob;
                                         }
                                     }
                                 }
-
+                                
                                 const result = denom === 0 ? 0 : num / denom;
-
-                                return "$E(Y|X<="+N+") = " + result + "$";
+                                
+                                if (calcType === "Y^2") {
+                                    return "$E(Y^2|X<=" + N + ") = " + result + "$";
+                                } else {
+                                    return "$E(Y|X<=" + N + ") = " + result + "$";
+                                }
                             },
                         },
                         {
@@ -668,7 +680,7 @@
                                     <tr>
                                         <th></th>
                                         <th>Y=0</th>
-                                        <th>Y=3/4</th>
+                                        <th>Y=3</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -696,13 +708,26 @@
                             `;
                             formElement.appendChild(tableElement);
                             
-                            const inputGroup = document.createElement('div');
-                            inputGroup.className = 'input-group';
-                            inputGroup.innerHTML = `
-                                <label for="${questionId}-E"><span class="math">$E(Y|X<=N)$</span>:</label>
-                                <input type="text" id="${questionId}-E" name="E" class="math-input" required>
+                            // Campo para N
+                            const inputGroupN = document.createElement('div');
+                            inputGroupN.className = 'input-group';
+                            inputGroupN.innerHTML = `
+                                <label for="${questionId}-N"><span class="math">$N$</span>:</label>
+                                <input type="text" id="${questionId}-N" name="N" class="math-input" required>
                             `;
-                            formElement.appendChild(inputGroup);
+                            formElement.appendChild(inputGroupN);
+                            
+                            // Dropdown para selecionar o tipo de cálculo
+                            const inputGroupCalcType = document.createElement('div');
+                            inputGroupCalcType.className = 'input-group';
+                            inputGroupCalcType.innerHTML = `
+                                <label for="${questionId}-calcType">Tipo de Cálculo:</label>
+                                <select id="${questionId}-calcType" name="calcType" class="math-input" required>
+                                    <option value="Y">E(Y|X<=N)</option>
+                                    <option value="Y^2">E(Y²|X<=N)</option>
+                                </select>
+                            `;
+                            formElement.appendChild(inputGroupCalcType);
                         } 
                         // Caso especial para o exercício 1 da semana 3
                         else if (weekIndex === 2 && questionIndex === 0) {
@@ -844,18 +869,31 @@
                 for (const fieldName in question.fields) {
                     const inputId = `${questionId}-${fieldName}`;
                     const input = document.getElementById(inputId);
-                    if (!input || input.value.trim() === '') {
+                    
+                    if (!input || (input.tagName !== "SELECT" && input.value.trim() === '')) {
                         allFieldsFilled = false;
                         if (input) input.focus();
                         return;
                     }
-                    // Avaliar expressão matemática simples
-                    try {
-                        fields[fieldName] = eval(input.value.replace(/[^0-9+\-*/().]/g, ''));
-                    } catch (e) {
-                        alert(`Invalid math expression in ${question.fields[fieldName]}`);
-                        input.focus();
-                        return;
+                    
+                    // Verificar se é um select
+                    if (input.tagName === "SELECT") {
+                        fields[fieldName] = input.value;
+                    } else {
+                        // Avaliar expressão matemática para inputs normais
+                        try {
+                            let value = input.value.trim();
+                            if (value.includes('/')) {
+                                const [numerator, denominator] = value.split('/');
+                                fields[fieldName] = parseFloat(numerator) / parseFloat(denominator);
+                            } else {
+                                fields[fieldName] = eval(value.replace(/[^0-9+\-*/().]/g, ''));
+                            }
+                        } catch (e) {
+                            alert(`Invalid math expression in ${question.fields[fieldName]}`);
+                            input.focus();
+                            return;
+                        }
                     }
                 }
                 
