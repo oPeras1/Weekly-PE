@@ -654,6 +654,157 @@
                         }
                     ]
                 },
+                {
+                    name: "Week 4",
+                    questions: [
+                        {
+                            title: "1.",
+                            fields: {
+                                X1: "x_{1}",
+                                X2: "x_{2}",
+                                X3: "x_{3}",
+                                X4: "x_{4}",
+                                X5: "x_{5}",
+                            },
+                            calculate: (fields) => {
+                                const X1 = parseFloat(fields.X1);
+                                const X2 = parseFloat(fields.X2);
+                                const X3 = parseFloat(fields.X3);
+                                const X4 = parseFloat(fields.X4);
+                                const X5 = parseFloat(fields.X5);
+
+                                const total = X1 + X2 + X3 + X4 + X5;
+
+                                function f(x) {
+                                    return Math.pow(x, 5) * Math.pow(1 - x, total-5);
+                                }
+
+                                function ternarySearch(low, high, eps = 1e-9) {
+                                    while (high - low > eps) {
+                                        const mid1 = low + (high - low) / 3;
+                                        const mid2 = high - (high - low) / 3;
+                                        const f1 = f(mid1);
+                                        const f2 = f(mid2);
+
+                                        if (f1 < f2) {
+                                        low = mid1;
+                                        } else {
+                                        high = mid2;
+                                        }
+                                    }
+
+                                    const maxX = (low + high) / 2;
+                                    return { maxX, maxY: f(maxX) };
+                                }
+
+                                const result = ternarySearch(0, 1);
+
+                                return "$p̂ = " + result.maxX + "$";
+                            },
+                        },
+                        {
+                            title: "2.",
+                            fields: {
+                                N: "n",
+                                Sum: "\\sum_{i=1}^{n} x_i^2",
+                            },
+                            calculate: (fields) => {
+                                const N = parseFloat(fields.N);
+                                const Sum = parseFloat(fields.Sum);
+
+
+
+                                return "$p̂ = " + Math.sqrt(Sum/N) + "$";
+                            },
+                        },
+                        {
+                            title: "3.",
+                            fields: {
+                                PxM: "P(X>M), M",
+                                N: "n",
+                                Sum: "\\sum_{i=1}^{n} x_i",
+                            },
+                            calculate: (fields) => {
+                                const PxM = parseFloat(fields.PxM);
+                                const N = parseFloat(fields.N);
+                                const Sum = parseFloat(fields.Sum);
+
+                                const p = Sum/N;
+
+                                let sumPoisson = 0;
+
+                                for (let i = 0; i <= PxM; i++) {
+                                    sumPoisson += poissonProbability(p, i);
+                                }
+
+                                const result = 1 - sumPoisson;
+
+                                return "$\\hat{P}(X>"+ N +") = " + result + "$";
+                            },
+                        },
+                        {
+                            title: "4.",
+                            fields: {
+                                X1: "x_{1}",
+                                X2: "x_{2}",
+                                X3: "x_{3}",
+                                X4: "x_{4}",
+                                X5: "x_{5}",
+                                H: "H",
+                            },
+                            calculate: (fields) => {
+                                const X1 = parseFloat(fields.X1);
+                                const X2 = parseFloat(fields.X2);
+                                const X3 = parseFloat(fields.X3);
+                                const X4 = parseFloat(fields.X4);
+                                const X5 = parseFloat(fields.X5);
+
+                                const H = parseFloat(fields.H);
+
+                                const total = X1 + X2 + X3 + X4 + X5;
+
+                                const P = 5/total;
+
+                                console.log(P);
+
+                                return "$\\hat{P}(X>"+ H +") = " + Math.exp(-P*H) + "$";
+                            },
+                        },
+                        {
+                            title: "5.",
+                            fields: {
+                                X1: "x_{1}",
+                                X2: "x_{2}",
+                                X3: "x_{3}",
+                                X4: "x_{4}",
+                                X5: "x_{5}",
+                                X6: "x_{6}",
+                                XmN: "P(X \\leq N)",
+                            },
+                            calculate: (fields) => {
+                                const X1 = parseFloat(fields.X1);
+                                const X2 = parseFloat(fields.X2);
+                                const X3 = parseFloat(fields.X3);
+                                const X4 = parseFloat(fields.X4);
+                                const X5 = parseFloat(fields.X5);
+                                const X6 = parseFloat(fields.X6);
+                                const XmN = parseFloat(fields.XmN);
+
+                                const sumLN = Math.log(1-X1) + Math.log(1-X2) + Math.log(1-X3) + Math.log(1-X4) + Math.log(1-X5) + Math.log(1-X6);
+
+                                Math.l
+
+                                console.log(sumLN);
+
+                                const P = -6/sumLN
+
+                                const result = 1 - Math.pow((1-XmN), P);
+                                
+                                return "$\\hat{P}(X \\leq "+ XmN +") = " + result + "$";
+                            },
+                        }
+                    ]
+                },
             ];
 
             function toggleCollapse(element) {
