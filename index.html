@@ -181,9 +181,113 @@
             color: #fff;
             font-family: monospace;
         }
+        .disclaimer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .disclaimer-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .disclaimer-content {
+            background-color: #1e1e1e;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            transform: translateY(-20px);
+            transition: transform 0.4s ease;
+            overflow: hidden;
+        }
+
+        .disclaimer-overlay.show .disclaimer-content {
+            transform: translateY(0);
+        }
+
+        .disclaimer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #2a2a2a;
+            border-bottom: 1px solid #444;
+        }
+
+        .disclaimer-header h2 {
+            margin: 0;
+            color: #ff9800;
+            font-size: 1.5rem;
+            text-align: left;
+        }
+
+        .close-btn {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-btn:hover {
+            color: #ff9800;
+        }
+
+        .disclaimer-body {
+            padding: 20px;
+        }
+
+        .disclaimer-body p {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .disclaimer-body ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .disclaimer-body li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .disclaimer-body strong {
+            color: #ff9800;
+        }
     </style>
 </head>
 <body>
+    <div id="disclaimer-popup" class="disclaimer-overlay">
+        <div class="disclaimer-content">
+            <div class="disclaimer-header">
+                <h2>⚠️ Warning</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="disclaimer-body">
+                <p>This page is designed <strong>only</strong> to verify your answers during practice.</p>
+                <p>Remember:</p>
+                <ul>
+                    <li>Using this page <strong>will not help you learn</strong> the material properly</li>
+                    <li>During exams, <strong>pe.operas.pt</strong> will <strong>not</strong> be there with you to help you</li>
+                    <li>The best way to succeed is to <strong>understand the principles</strong> behind each calculation</li>
+                </ul>
+                <p>Use this tool responsibly to check your work, not to replace your bad study</p>
+            </div>
+        </div>
+    </div>
     <div class="footer">
         <i class="fab fa-github github-icon"></i>
         Made with ❤️ by <a href="https://github.com/oPeras1" target="_blank">oPeras1</a>
@@ -1101,6 +1205,32 @@
 
             document.addEventListener('DOMContentLoaded', function() {
                 generateForm();
+                
+                // Show disclaimer popup when page loads
+                const disclaimerPopup = document.getElementById('disclaimer-popup');
+                
+                // Check if the user has seen the disclaimer before
+                if (!localStorage.getItem('disclaimerSeen')) {
+                    setTimeout(() => {
+                        disclaimerPopup.classList.add('show');
+                    }, 500);
+                }
+                
+                // Close popup when clicking the X
+                const closeBtn = document.querySelector('.close-btn');
+                closeBtn.addEventListener('click', function() {
+                    disclaimerPopup.classList.remove('show');
+                    // Save to localStorage that user has seen the disclaimer
+                    localStorage.setItem('disclaimerSeen', 'true');
+                });
+                
+                // Also close when clicking outside the popup
+                disclaimerPopup.addEventListener('click', function(e) {
+                    if (e.target === disclaimerPopup) {
+                        disclaimerPopup.classList.remove('show');
+                        localStorage.setItem('disclaimerSeen', 'true');
+                    }
+                });
             });
         </script>
     </div>
