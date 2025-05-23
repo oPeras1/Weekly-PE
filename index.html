@@ -6,6 +6,7 @@
     <title>Weekly PE Questions</title>
     
     <!-- Add MathJax script for LaTeX support -->
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({
@@ -325,6 +326,20 @@
                 return 0.5 * (1 + erf(z / Math.sqrt(2)));
             }
 
+            function intervaloConfiancaDesvioPadrao(n, varianciaAmostral, alpha) {
+                const gl = n - 1;
+                const chi2_inf = jStat.chisquare.inv(alpha / 2, gl);
+                const chi2_sup = jStat.chisquare.inv(1 - alpha / 2, gl);
+
+                const limiteInferior = Math.sqrt((gl * varianciaAmostral) / chi2_sup);
+                const limiteSuperior = Math.sqrt((gl * varianciaAmostral) / chi2_inf);
+
+                return {
+                    limiteInferior,
+                    limiteSuperior,
+                };
+            }
+
             function erf(x) {
                 const sign = (x >= 0) ? 1 : -1;
                 x = Math.abs(x);
@@ -337,6 +352,17 @@
                 const t = 1.0 / (1.0 + p * x);
                 const y = 1.0 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x));
                 return sign * y;
+            }
+
+            function valorCriticoT(alfa, df) {
+                // Valores críticos t para df=6 (tabela simplificada para alfa/2 bilateral)
+                // alfa=0.05 → t=2.447, alfa=0.01 → t=3.707
+                const tabela = {
+                    0.10: 1.943,   // alfa = 0.10 bilateral (5% cauda cada lado)
+                    0.05: 2.447,
+                    0.01: 3.707
+                };
+                return tabela[alfa] || null;
             }
 
             const weeks = [
@@ -905,6 +931,203 @@
                                 const result = 1 - Math.pow((1-XmN), P);
                                 
                                 return "$\\hat{P}(X \\leq "+ XmN +") = " + result + "$";
+                            },
+                        }
+                    ]
+                },
+                {
+                    name: "Week 5",
+                    questions: [
+                        {
+                            title: "1.",
+                            fields: {
+                                N: "N",
+                                MA: "Média",
+                                VA: "Variância",
+                                IC: "Confiança",
+                            },
+                            calculate: (fields) => {
+                                const n = parseFloat(fields.N);
+                                const media = parseFloat(fields.MA);
+                                const variancia = parseFloat(fields.VA);
+                                const alfa = 1-parseFloat(fields.IC);
+
+                                const s = Math.sqrt(variancia);
+                                const df = n-1;
+
+                                const tCritico = jStat.studentt.inv(1 - alfa/2, df);
+
+                                // Erro padrão
+                                const erroPadrao = s / Math.sqrt(n);
+
+                                // Intervalo de confiança
+                                const limiteInferior = media - tCritico * erroPadrao;
+                                const limiteSuperior = media + tCritico * erroPadrao;
+
+                                return "$[" + limiteInferior + ", " + limiteSuperior + "]$";
+                            },
+                        },
+                        {
+                            title: "2.",
+                            fields: {
+                                N: "N",
+                                V: "Variancia",
+                                C: "(1-\\alpha)*100%",
+                            },
+                            calculate: (fields) => {
+                                const n = parseFloat(fields.N);
+                                const s2 = parseFloat(fields.V);
+                                const alpha = parseFloat(fields.C);
+
+                                const resultado = intervaloConfiancaDesvioPadrao(n, s2, alpha);
+
+                                return "$[" + resultado.limiteInferior + ", " + resultado.limiteSuperior + "]$";
+                            },
+                        },
+                        {
+                            title: "3.",
+                            fields: {
+                                I: "Indivíduos",
+                                C: "Contaminados",
+                                A: "(1-\\alpha)*100%",
+                            },
+                            calculate: (fields) => {
+                                const n = parseFloat(fields.I);
+                                const x = parseFloat(fields.C);
+                                const alfa = parseFloat(fields.A);
+
+                                // Proporção amostral
+                                const p_hat = x / n;
+
+                                // Função para calcular valor crítico z (usando jStat para normal inversa)
+                                function valorCriticoZ(prob) {
+                                // jStat precisa ser carregado para isso funcionar
+                                if (typeof jStat !== "undefined") {
+                                    return jStat.normal.inv(prob, 0, 1);
+                                }
+                                // Aproximação simples para 0.95 (alfa/2=0.05) ~ 1.645
+                                if (Math.abs(prob - 0.95) < 0.01) return 1.645;
+                                if (Math.abs(prob - 0.975) < 0.01) return 1.96;
+                                if (Math.abs(prob - 0.995) < 0.01) return 2.575;
+                                return NaN;
+                                }
+
+                                // Valor crítico z para 1 - alfa/2
+                                const zCritico = valorCriticoZ(1 - alfa/2);
+
+                                // Erro padrão da proporção
+                                const erroPadrao = Math.sqrt((p_hat * (1 - p_hat)) / n);
+
+                                // Intervalo de confiança
+                                const limiteInferior = p_hat - zCritico * erroPadrao;
+                                const limiteSuperior = p_hat + zCritico * erroPadrao;
+
+                                return "$[" + limiteInferior + ", " + limiteSuperior + "]$";
+                            },
+                        },
+                        {
+                            title: "4.",
+                            fields: {
+                                N: "N",
+                                MA: "\\bar{x}",
+                                S: "S²=A*10⁶",
+                                D: "Esperado",
+                            },
+                            calculate: (fields) => {
+                                const n = parseFloat(fields.N);
+                                const media = parseFloat(fields.MA);
+                                const s2 = parseFloat(fields.S);
+                                const d = parseFloat(fields.D);
+
+                                function testeHipoteseUnilateral(n, mediaAmostral, varianciaAmostral, mu0, alfas) {
+                                    const s = Math.sqrt(varianciaAmostral);
+                                    const df = n - 1;
+                                    const erroPadrao = s / Math.sqrt(n);
+
+                                    // Estatística t
+                                    const t = (mediaAmostral - mu0) / erroPadrao;
+
+                                    // Valor-p unilateral esquerda = P(T <= t)
+                                    const valorP = jStat.studentt.cdf(t, df);
+
+                                    // Arrays para categorizar alfa
+                                    const naoRejeita = [];
+                                    const rejeita = [];
+
+                                    alfas.forEach(alfa => {
+                                        if (valorP <= alfa) {
+                                        rejeita.push(`${(alfa*100).toFixed(0)}%`);
+                                        } else {
+                                        naoRejeita.push(`${(alfa*100).toFixed(0)}%`);
+                                        }
+                                    });
+
+                                    // Retornar string formatada
+                                    console.log(rejeita);
+                                    console.log(naoRejeita)
+                                    
+                                    let stringresult = ""
+
+                                    if (naoRejeita.length > 0) {
+                                        stringresult += `Não se rejeita: ${naoRejeita.join(', ')}\n`;
+                                    }
+
+                                    if (rejeita.length > 0) {
+                                        stringresult += `Rejeita-se: ${rejeita.join(', ')}`;
+                                    }
+
+                                    return stringresult;
+                                }
+
+                                return testeHipoteseUnilateral(n, media, s2*Math.pow(10,6), d, [0.01, 0.05, 0.10]);
+                            },
+                        },
+                        {
+                            title: "5.",
+                            fields: {
+                                L: "Lixoboetas",
+                                F: "Favoráveis",
+                                Parte: "Quociente (a/b)"
+                            },
+                            calculate: (fields) => {
+                                const L = parseFloat(fields.L);
+                                const F = parseFloat(fields.F);
+                                const parte = parseFloat(fields.Parte);
+                                
+                                function testeProporcaoBilateral(n, x, p0, alfas) {
+                                    const phat = x / n;
+                                    const erroPadrao = Math.sqrt(p0 * (1 - p0) / n);
+                                    const z = (phat - p0) / erroPadrao;
+
+                                    // valor-p bilateral = 2 * P(Z >= |z|)
+                                    const valorP = 2 * (1 - jStat.normal.cdf(Math.abs(z), 0, 1));
+
+                                    const naoRejeita = [];
+                                    const rejeita = [];
+
+                                    alfas.forEach(alfa => {
+                                        if (valorP <= alfa) {
+                                        rejeita.push(`${(alfa * 100).toFixed(0)}%`);
+                                        } else {
+                                        naoRejeita.push(`${(alfa * 100).toFixed(0)}%`);
+                                        }
+                                    });
+
+                                    let stringresult = "";
+
+                                    if (naoRejeita.length > 0) {
+                                            stringresult += `Não se rejeita: ${naoRejeita.join(', ')}\n`;
+                                        }
+
+                                    if (rejeita.length > 0) {
+                                        stringresult += `Rejeita-se: ${rejeita.join(', ')}`;
+                                    }
+
+                                    return stringresult;
+
+                                    }
+
+                                return testeProporcaoBilateral(L, F, parte, [0.01, 0.05, 0.10]);
                             },
                         }
                     ]
